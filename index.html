@@ -8,14 +8,17 @@
 		</style>
 	</head>
 	<body>
-        <h1 id="time">
-
-        </h1>
+        <h4 id="time">
+        </h4>
+        
+        <h4 id="score">
+        </h4>
 		<script src="js/three.js"></script>
 		<script>
 			// Our Javascript will go here.
             const start_time = Date.now()
             var elapsed_time = 0
+            var score =0;
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
@@ -147,6 +150,7 @@
                         // console.log(collisionResults[0])
                         star_to_del.push(stars[i])
                         stars.splice(i,1)
+                        score+=5;
                         // console.log(star_to_del)
                         break;
                         // collisionResults[0].object.material.transparent = true;
@@ -175,6 +179,7 @@
                             // enemy_jets[j].visible=false
                             missiles.splice(i,1)
                             enemy_jets.splice(j,1)
+                            score+=10
                             break;
                         }
                     }
@@ -189,6 +194,7 @@
                         enemy_jets[j].visible=false
                         scene.remove(enemy_jets[j])
                         enemy_jets.splice(j,1)
+                        score-=5
                         break;
                     }
                 }
@@ -204,7 +210,8 @@
                 // cube.rotation.y += 0.01;    
                 spacesphere.rotation.x -= 0.001;
                 elapsed_time = Math.floor((Date.now()-start_time)/1000)
-                document.getElementById("time").innerHTML = elapsed_time
+                document.getElementById("time").innerHTML = "Time: "+elapsed_time
+                document.getElementById("score").innerHTML = "Score: "+score
                 // console.log(clock.running)
                 // spacesphere.position.y -= 0.1
                 // if(spacesphere.position.y<-20){
