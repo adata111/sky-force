@@ -168,28 +168,29 @@
                     for(var j=0;j<enemy_jets.length;j++){
                         // stars[i].rotation.y+=0.01
                         if(missiles[i].position.distanceTo(enemy_jets[j].position)<0.15){
-                            // console.log(collisionResults[0].object.name);
-                            // console.log(directionVector)
                             console.log("coll enemy missile")
-                            // console.log(collisionResults[0])
-                            // star_to_del.push(stars[i])
-                            // stars.splice(i,1)
-                            missiles[i].visible=false
-                            enemy_jets[j].visible=false
-                            // console.log(star_to_del)
+                            scene.remove(missiles[i])
+                            scene.remove(enemy_jets[j])
+                            // missiles[i].visible=false
+                            // enemy_jets[j].visible=false
+                            missiles.splice(i,1)
+                            enemy_jets.splice(j,1)
                             break;
-                            // collisionResults[0].object.material.transparent = true;
-                            // collisionResults[0].object.material.opacity = 0.4;
                         }
                     }
                 }
-                // console.log(stars.length)
-                for (var i=0 ; i<star_to_del.length;i++){
-                    console.log("removing stars")
-                    // console.log(star_to_del.length)
-                    scene.remove(star_to_del[i])
-                    // stars.splice(i,1)
-                    console.log(stars.length)
+            }
+            function plane_enemy_collision(){
+                enemy_to_del=[]
+                for(var j=0;j<enemy_jets.length;j++){
+                    // stars[i].rotation.y+=0.01
+                    if(cube.position.distanceTo(enemy_jets[j].position)<0.45){
+                        console.log("coll enemy plane")
+                        enemy_jets[j].visible=false
+                        scene.remove(enemy_jets[j])
+                        enemy_jets.splice(j,1)
+                        break;
+                    }
                 }
             }
             for(var i =0;i<5;i++){
@@ -244,6 +245,7 @@
                 }
                 star_plane_collision();
                 missile_enemy_collision();
+                plane_enemy_collision();
                 renderer.render( scene, camera );
             }
             animate();
