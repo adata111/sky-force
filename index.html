@@ -8,9 +8,14 @@
 		</style>
 	</head>
 	<body>
+        <h1 id="time">
+
+        </h1>
 		<script src="js/three.js"></script>
 		<script>
 			// Our Javascript will go here.
+            const start_time = Date.now()
+            var elapsed_time = 0
             const scene = new THREE.Scene();
             const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
@@ -19,38 +24,49 @@
             document.body.appendChild( renderer.domElement );
             const geometry = new THREE.BoxGeometry(0.5,0.5,0.1);
             const material = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
+            const missile_geometry = new THREE.ConeGeometry(0.1,0.2,16);
+            const missile_material = new THREE.MeshLambertMaterial( { color: 0x770001 } );
             const star_geometry = new THREE.SphereGeometry(0.1);
             const star_material = new THREE.MeshPhongMaterial({color:0xffd700});
-            console.log(geometry)
+            const enemy_jet_geometry = new THREE.BoxGeometry(0.2,0.2,0.1);
+            const enemy_jet_material = new THREE.MeshPhongMaterial({color:0xee0000});
+            // console.log(geometry)
             const cube = new THREE.Mesh( geometry, material );
-            console.log(cube.geometry.isBufferGeometry)
+            // console.log(cube.geometry.isBufferGeometry)
             
             scene.add( cube );
 
             var missiles = [];
             function shootMissile(){
                 console.log("shoot");
-                var missile = new THREE.Mesh( geometry, material);
-                console.log(cube.position);
-                missile.position.set(cube.position.x, cube.position.y, cube.position.z);
+                var missile = new THREE.Mesh( missile_geometry, missile_material);
+                // console.log(cube);
+                missile.position.set(cube.position.x, cube.position.y+cube.geometry.parameters.height/2, cube.position.z);
+                missile.rotation.x+=0.5
                 missiles.push(missile);
                 console.log(missiles.length)
                 scene.add(missile)
             }
             var stars=[];
             function addStars(){
-                console.log("addign stars")
+                console.log("adding stars")
                 var star = new THREE.Mesh(star_geometry, star_material);
                 star.position.set(-4+Math.random()*8,-4+Math.random()*8, cube.position.z);
                 stars.push(star)
                 scene.add(star);
             }
-            // missiles.forEach(missile => {
-            //     console.log("missile")
-            //     scene.add(missile);
-            // });
-            // scene.add(missiles[0]);
             
+            var enemy_jets = []
+            function addEnemyJets(){
+                console.log("adding enemies")
+                var enemy_jet = new THREE.Mesh()
+                for(var i=0;i<3;i++){
+                    enemy_jet = new THREE.Mesh(enemy_jet_geometry, enemy_jet_material)
+                    enemy_jet.position.set((Math.random()-0.5)*(3), 4+i, cube.position.z)
+                    enemy_jets.push(enemy_jet)
+                    scene.add(enemy_jet)
+                }
+            }
             var loader = new THREE.TextureLoader();
             loader.crossOrigin = true
             //Space background is a large sphere
@@ -58,7 +74,7 @@
             var spacetex = loader.load("https://s3-us-west-2.amazonaws.com/s.cdpn.io/96252/space.jpg", function(texture) {
                 // this code makes the texture repeat
                 texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set( 2, 2 );
+                texture.repeat.set( 4, 4 );
                 
                 })
             // set the texture as the map for the material
@@ -97,6 +113,9 @@
             var xSpeed = 0.1;
             var ySpeed = 0.1;
 
+            var enemy_jet_ySpeed = 0.01;
+
+            var missile_speed = 0.05
             document.addEventListener("keydown", onDocumentKeyDown, false);
             function onDocumentKeyDown(event) {
                 // console.log("hi");
@@ -119,36 +138,8 @@
             var star_to_del = []
             function star_plane_collision(){
                 star_to_del=[]
-                // console.log(i__)
-                var originPoint = cube.position.clone();
-                // if(i__==0)
-                // console.log(cube);
-                // i__++;
-                var vertices = []
-                // if ( cube.isMesh ) {
-    
-                //     const position = cube.geometry.attributes.position;
-                //     const vector = new THREE.Vector3();
-
-                //     for ( let i = 0, l = position.count; i < l; i ++ ){
-
-                //         vector.fromBufferAttribute( position, i );
-                //         vector.applyMatrix4( cube.matrixWorld );
-                //         // console.log(vector);
-                //         vertices.push(vector)
-                    
-                //     }
-                // }
-
-                // for (var vertexIndex = 0; vertexIndex < vertices.length; vertexIndex++) {
-                //     var localVertex = vertices[vertexIndex].clone();
-                //     var globalVertex = localVertex.applyMatrix4(cube.matrix);
-                //     var directionVector = globalVertex.sub(cube.position);
-
-                //     var ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
-                //     var collisionResults = ray.intersectObjects(stars);
-                //     if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
                 for(var i=0;i<stars.length;i++){
+                    // stars[i].rotation.y+=0.01
                     if(stars[i].position.distanceTo(cube.position)<0.45){
                         // console.log(collisionResults[0].object.name);
                         // console.log(directionVector)
@@ -171,21 +162,57 @@
                     console.log(stars.length)
                 }
             }
+            function missile_enemy_collision(){
+                enemy_to_del=[]
+                for(var i=0;i<missiles.length;i++){
+                    for(var j=0;j<enemy_jets.length;j++){
+                        // stars[i].rotation.y+=0.01
+                        if(missiles[i].position.distanceTo(enemy_jets[j].position)<0.15){
+                            // console.log(collisionResults[0].object.name);
+                            // console.log(directionVector)
+                            console.log("coll enemy missile")
+                            // console.log(collisionResults[0])
+                            // star_to_del.push(stars[i])
+                            // stars.splice(i,1)
+                            missiles[i].visible=false
+                            enemy_jets[j].visible=false
+                            // console.log(star_to_del)
+                            break;
+                            // collisionResults[0].object.material.transparent = true;
+                            // collisionResults[0].object.material.opacity = 0.4;
+                        }
+                    }
+                }
+                // console.log(stars.length)
+                for (var i=0 ; i<star_to_del.length;i++){
+                    console.log("removing stars")
+                    // console.log(star_to_del.length)
+                    scene.remove(star_to_del[i])
+                    // stars.splice(i,1)
+                    console.log(stars.length)
+                }
+            }
             for(var i =0;i<5;i++){
                 addStars()
             }
+            var enemy_jet_cooldown = 15
+            var flag = 1;   //changed to 1 at the start of every (enemy_jet_cooldown)th second and then changed back to zero
             function animate() {
                 requestAnimationFrame( animate );
                 // cube.rotation.x += 0.01;
                 // cube.rotation.y += 0.01;    
-                // spacesphere.rotation.x -= 0.001;
-                // if(spacesphere.position<-40){
-                //     spacesphere.position=40;
+                spacesphere.rotation.x -= 0.001;
+                elapsed_time = Math.floor((Date.now()-start_time)/1000)
+                document.getElementById("time").innerHTML = elapsed_time
+                // console.log(clock.running)
+                // spacesphere.position.y -= 0.1
+                // if(spacesphere.position.y<-20){
+                //     spacesphere.position.y=20;
                 // }
                 missile_to_del = []
                 missiles.forEach(missile => {
-                    missile.position.y += ySpeed;
-                    if(missile.position.y>4){
+                    missile.position.y += missile_speed;
+                    if(missile.position.y>4 || !missile.visible){
                         missile_to_del.push(missile)
                     }
                 });
@@ -197,70 +224,29 @@
                     while(stars.length<5)
                         addStars();
                 }
+                if(elapsed_time%enemy_jet_cooldown==0 && flag){
+                    addEnemyJets()
+                    flag=0
+                }
+                if(elapsed_time%enemy_jet_cooldown==1)
+                    flag=1
+                enemy_jet_to_del = []
+                enemy_jets.forEach(enemy_jet => {
+                    enemy_jet.position.y -= enemy_jet_ySpeed
+                    if(enemy_jet.position.y<-4 || !enemy_jet.visible){
+                        // console.log((-window.innerHeight/2))
+                        enemy_jet_to_del.push(enemy_jet)
+                    }
+                });
+                for(var i =0;i<enemy_jet_to_del.length;i++){
+                    scene.remove(enemy_jet_to_del[i])
+                    enemy_jets.splice(i,1)
+                }
                 star_plane_collision();
+                missile_enemy_collision();
                 renderer.render( scene, camera );
             }
             animate();
-            // function star_plane_collision(){
-            //     star_to_del=[]
-            //     // var originPoint = cube.position.clone();
-            //     // if(i__==0)
-            //     // console.log(cube);
-            //     // i__++;
-            //     // var vertices = []
-            //     // if ( cube.isMesh ) {
-    
-            //     //     const position = cube.geometry.attributes.position;
-            //     //     const vector = new THREE.Vector3();
-
-            //     //     for ( let i = 0, l = position.count; i < l; i ++ ){
-
-            //     //         vector.fromBufferAttribute( position, i );
-            //     //         vector.applyMatrix4( cube.matrixWorld );
-            //     //         // console.log(vector);
-            //     //         vertices.push(vector)
-                    
-            //     //     }
-            //     // }
-            //     mesh = new THREE.Object3D();
-            //     /* ... */
-            //     // Set the rays : one vector for every potential direction
-            //     rays = [
-            //     new THREE.Vector3(0, 0, 1),
-            //     new THREE.Vector3(1, 0, 1),
-            //     new THREE.Vector3(1, 0, 0),
-            //     new THREE.Vector3(1, 0, -1),
-            //     new THREE.Vector3(0, 0, -1),
-            //     new THREE.Vector3(-1, 0, -1),
-            //     new THREE.Vector3(-1, 0, 0),
-            //     new THREE.Vector3(-1, 0, 1)
-            //     ];
-            //     // And the "RayCaster", able to test for intersections
-            //     caster = new THREE.Raycaster();
-
-            //     // For each ray
-            //     for (var i = 0; i < rays.length; i++) {
-            //     // We reset the raycaster to this direction
-            //         caster.set(cube.position, rays[i]);
-            //         // Test if we intersect with any obstacle mesh
-            //         var collisionResults = caster.intersectObjects(stars);
-            //         if (collisionResults.length > 0 && collisionResults[0].distance < 5) {
-            //             // console.log(collisionResults[0].object.name);
-            //             // console.log(directionVector)
-            //             console.log("coll")
-            //             // console.log(collisionResults[0])
-            //             star_to_del.push(collisionResults[0].object)
-            //             break;
-            //             // collisionResults[0].object.material.transparent = true;
-            //             // collisionResults[0].object.material.opacity = 0.4;
-            //         }
-            //     }
-            //     for (var i ; i<star_to_del.length;i++){
-            //         console.log("removing stars")
-            //         scene.remove(star_to_del[i])
-            //         stars.splice(i,1)
-            //     }
-            // }
             
 		</script>
 	</body>
