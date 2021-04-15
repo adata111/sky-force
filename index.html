@@ -14,6 +14,7 @@
         <h4 id="score">
         </h4>
 		<script src="js/three.js"></script>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/loaders/GLTFLoader.js"></script>
 		<script>
 			// Our Javascript will go here.
             const start_time = Date.now()
@@ -51,10 +52,47 @@
                 scene.add(missile)
             }
             var stars=[];
+            var loader = new THREE.GLTFLoader();
+            var star = new THREE.Mesh()
+            loader.load(
+                "models/star1.glb",
+                function ( gltf ) {
+                    star = gltf.scene.getObjectByName("Circle")
+                    // star.scale.set(0.2,0.2,0.2)
+                    // star.rotation.y+=1
+                    THREE.BufferGeometry.prototype.copy.call(star_geometry, star.geometry);
+                    star_material = star.material
+                    star.position.set(-4+Math.random()*8,-4+Math.random()*8, cube.position.z);
+                    // star.material.color.g =0
+                    // star.material.color.b =0
+                    // stars.push(star)
+                    // scene.add(star)
+                    console.log("star")
+                    console.log(star)
+                }, undefined, function ( error ) {
+                    console.error( error );
+                } 
+            );
+            // scene.add(star)
             function addStars(){
                 console.log("adding stars")
+            //     loader.load(
+            //     "models/star.glb",
+            //     function ( gltf ) {
+            //         var star = gltf.scene
+            //         star.scale.set(0.2,0.2,0.2)
+            //         star.rotation.x+=1 
+            //         star.position.set(-4+Math.random()*8,-4+Math.random()*8, cube.position.z);
+            //         stars.push(star)
+            //         scene.add(star)
+            //     }, undefined, function ( error ) {
+            //         console.error( error );
+            //     } 
+            // );
                 var star = new THREE.Mesh(star_geometry, star_material);
                 star.position.set(-4+Math.random()*8,-4+Math.random()*8, cube.position.z);
+                star.scale.set(0.1,0.1,0.1)
+                star.rotation.x+=1
                 stars.push(star)
                 scene.add(star);
             }
@@ -142,8 +180,8 @@
             function star_plane_collision(){
                 star_to_del=[]
                 for(var i=0;i<stars.length;i++){
-                    // stars[i].rotation.y+=0.01
-                    if(stars[i].position.distanceTo(cube.position)<0.45){
+                    stars[i].rotation.z+=0.01
+                    if(stars[i].position.distanceTo(cube.position)<0.4){
                         // console.log(collisionResults[0].object.name);
                         // console.log(directionVector)
                         console.log("coll")
