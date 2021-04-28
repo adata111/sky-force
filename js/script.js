@@ -25,19 +25,20 @@ const enemy_jet_material = new THREE.MeshPhongMaterial({color:0xee0000});
 var cube = new THREE.Group();
 // console.log(cube.geometry.isBufferGeometry)
 model_loader.load(
-    "./models/space2.glb",
+    "./models/space_player1_.glb",
     function ( gltf ) {
-        cube = gltf.scene.getObjectByName("Text")
-        cube.scale.set(0.3,0.3,0.3)
+        cube = gltf.scene.getObjectByName("Cube")
+        cube.scale.set(0.071,0.071,0.071)
         cube.position.set(0,0,0)
-        // cube.rotation.x+=2
-        // cube.rotation.y+=3.15
-        // cube.rotation.z+=1
+        cube.rotation.x+=1.5
+        // cube.rotation.z+=2
+        cube.rotation.y+=3.15
+        // cube.rotation.z+=2
         scene.add(cube)
-        console.log("hi")
-        console.log(cube)
-        console.log("hi")
-        console.log("spaceship")
+        // console.log("hi")
+        // console.log(cube)
+        // console.log("hi")
+        // console.log("spaceship")
         // cube = new THREE.Mesh( star.geometry, cube_material );
         // scene.add( cube );
     }, undefined, function ( error ) {
@@ -48,13 +49,25 @@ model_loader.load(
 
 var missiles = [];
 function shootMissile(){
-    console.log("shoot");
+    // console.log("shoot");
     var missile = new THREE.Mesh( missile_geometry, missile_material);
     // console.log(cube);
     missile.position.set(cube.position.x, cube.position.y, cube.position.z);
     missile.rotation.x+=0.5
     missiles.push(missile);
     console.log(missiles.length)
+    scene.add(missile)
+}
+var enemy_missiles = [];
+function shootEnemyMissile(x,y){
+    console.log("shoot");
+    var missile = new THREE.Mesh( missile_geometry, missile_material);
+    // console.log(cube);
+    missile.position.set(x, y, cube.position.z);
+    missile.rotation.x-=0.5
+    missile.rotation.z+=3
+    enemy_missiles.push(missile);
+    // console.log(enemy_missiles.length)
     scene.add(missile)
 }
 var stars=[];
@@ -67,15 +80,14 @@ model_loader.load(
         // star.rotation.y+=1
         THREE.BufferGeometry.prototype.copy.call(star_geometry, star.geometry);
         star_material = star.material
-        console.log("star")
-        console.log(gltf.scene)
+        // console.log("star")
+        // console.log(gltf.scene)
     }, undefined, function ( error ) {
         console.error( error );
     } 
 );
 // scene.add(star)
 function addStars(){
-    console.log("adding stars")
     var star = new THREE.Mesh(star_geometry, star_material);
     star.position.set(-4+Math.random()*8,-4+Math.random()*8, cube.position.z);
     star.scale.set(0.1,0.1,0.1)
@@ -85,11 +97,26 @@ function addStars(){
 }
 
 var enemy_jets = []
+var enemy_grp = new THREE.Group()
+model_loader.load(
+    "./models/space2.glb",
+    function ( gltf ) {
+        enemy_grp = gltf.scene.getObjectByName("Text")
+        enemy_grp.scale.set(0.2,0.2,0.2)
+        enemy_grp.rotation.x+=2
+        // cube = new THREE.Mesh( star.geometry, cube_material );
+        // scene.add( cube );
+    }, undefined, function ( error ) {
+        console.error( error );
+    } 
+);
 function addEnemyJets(){
     console.log("adding enemies")
-    var enemy_jet = new THREE.Mesh()
+    // var enemy_jet = new THREE.Mesh()
+    var enemy_jet = new THREE.Group()
     for(var i=0;i<3;i++){
-        enemy_jet = new THREE.Mesh(enemy_jet_geometry, enemy_jet_material)
+        // enemy_jet = new THREE.Mesh(enemy_jet_geometry, enemy_jet_material)
+        enemy_jet = enemy_grp.clone()
         enemy_jet.position.set((Math.random()-0.5)*(3), 4+i, cube.position.z)
         enemy_jets.push(enemy_jet)
         scene.add(enemy_jet)
@@ -154,13 +181,17 @@ function onDocumentKeyDown(event) {
     // console.log("hi");
     var keyCode = event.which;
     if (keyCode == 87) {
-        cube.position.y += ySpeed;
+        if (cube.position.y<(3.8))
+           cube.position.y += ySpeed;
     } else if (keyCode == 83) {
-        cube.position.y -= ySpeed;
+        if (cube.position.y>(-3.5))
+            cube.position.y -= ySpeed;
     } else if (keyCode == 65) {
-        cube.position.x -= xSpeed;
+        if (cube.position.x>(-5))
+            cube.position.x -= xSpeed;
     } else if (keyCode == 68) {
-        cube.position.x += xSpeed;
+        if (cube.position.x<(5))
+            cube.position.x += xSpeed;
     } else if (keyCode == 32) {
         shootMissile();
     }
@@ -175,26 +206,15 @@ function star_plane_collision(){
     for(var i=0;i<stars.length;i++){
         stars[i].rotation.z+=0.01
         if(stars[i].position.distanceTo(cube.position)<0.4){
-            // console.log(collisionResults[0].object.name);
-            // console.log(directionVector)
-            console.log("coll")
-            // console.log(collisionResults[0])
             star_to_del.push(stars[i])
             stars.splice(i,1)
             score+=5;
-            // console.log(star_to_del)
             break;
-            // collisionResults[0].object.material.transparent = true;
-            // collisionResults[0].object.material.opacity = 0.4;
         }
     }
-    // console.log(stars.length)
     for (var i=0 ; i<star_to_del.length;i++){
         console.log("removing stars")
-        // console.log(star_to_del.length)
         scene.remove(star_to_del[i])
-        // stars.splice(i,1)
-        console.log(stars.length)
     }
 }
 function missile_enemy_collision(){
@@ -221,10 +241,24 @@ function plane_enemy_collision(){
     for(var j=0;j<enemy_jets.length;j++){
         // stars[i].rotation.y+=0.01
         if(cube.position.distanceTo(enemy_jets[j].position)<0.4){
-            console.log("coll enemy plane")
+            // console.log("coll enemy plane")
             enemy_jets[j].visible=false
             scene.remove(enemy_jets[j])
             enemy_jets.splice(j,1)
+            score-=5
+            break;
+        }
+    }
+}
+function plane_missile_collision(){
+    enemy_to_del=[]
+    for(var j=0;j<enemy_missiles.length;j++){
+        // stars[i].rotation.y+=0.01
+        if(cube.position.distanceTo(enemy_missiles[j].position)<0.4){
+            console.log("coll enemy plane")
+            enemy_missiles[j].visible=false
+            scene.remove(enemy_missiles[j])
+            enemy_missiles.splice(j,1)
             score-=5
             break;
         }
@@ -235,19 +269,15 @@ for(var i =0;i<5;i++){
 }
 var enemy_jet_cooldown = 15
 var flag = 1;   //changed to 1 at the start of every (enemy_jet_cooldown)th second and then changed back to zero
+var flag2 = 1;
 function animate() {
     requestAnimationFrame( animate );
     // cube.rotation.x += 0.01;
     // cube.rotation.y += 0.01;    
     spacesphere.rotation.x -= 0.001;
     elapsed_time = Math.floor((Date.now()-start_time)/1000)
-    document.getElementById("time").innerHTML = "Time: "+elapsed_time
-    document.getElementById("score").innerHTML = "Score: "+score
-    // console.log(clock.running)
-    // spacesphere.position.y -= 0.1
-    // if(spacesphere.position.y<-20){
-    //     spacesphere.position.y=20;
-    // }
+    document.getElementById("time").innerHTML = elapsed_time
+    document.getElementById("score").innerHTML = score
     missile_to_del = []
     missiles.forEach(missile => {
         missile.position.y += missile_speed;
@@ -259,21 +289,31 @@ function animate() {
         scene.remove(missile_to_del[i])
         missiles.splice(i,1)
     }
+    missile_to_del = []//enemy
+    enemy_missiles.forEach(missile => {
+        missile.position.y -= missile_speed;
+        if(missile.position.y>4 || !missile.visible){
+            missile_to_del.push(missile)
+        }
+    });
+    for(var i =0;i<missile_to_del.length;i++){
+        scene.remove(missile_to_del[i])
+        enemy_missiles.splice(i,1)
+    }
     if(stars.length<3){
         while(stars.length<5)
             addStars();
     }
-    if(elapsed_time%enemy_jet_cooldown==0 && flag){
+    if(elapsed_time%enemy_jet_cooldown==4 && flag){
         addEnemyJets()
         flag=0
     }
-    if(elapsed_time%enemy_jet_cooldown==1)
+    if(elapsed_time%enemy_jet_cooldown==5)
         flag=1
     enemy_jet_to_del = []
     enemy_jets.forEach(enemy_jet => {
         enemy_jet.position.y -= enemy_jet_ySpeed
         if(enemy_jet.position.y<-4 || !enemy_jet.visible){
-            // console.log((-window.innerHeight/2))
             enemy_jet_to_del.push(enemy_jet)
         }
     });
@@ -281,9 +321,17 @@ function animate() {
         scene.remove(enemy_jet_to_del[i])
         enemy_jets.splice(i,1)
     }
+    if(elapsed_time%enemy_jet_cooldown==9 && enemy_jets.length>0 && flag2){
+        shootEnemyMissile(enemy_jets[0].position.x, enemy_jets[0].position.y)
+        flag2=0
+    }
+    if(elapsed_time%enemy_jet_cooldown==10 && enemy_jets.length>0){
+        flag2=1
+    }
     star_plane_collision();
     missile_enemy_collision();
     plane_enemy_collision();
+    plane_missile_collision();
     renderer.render( scene, camera );
 }
 animate();

@@ -8,15 +8,20 @@
 		</style>
 	</head>
 	<body>
-        <h4 id="time">
-        </h4>
-        
-        <h4 id="score">
-        </h4>
+		<div id="container" style="position:relative">
+		<div id="overlay" style="position:absolute; left:20px; top:10px;
+		background-color: rgba(0, 0, 0, 0.7);
+		color: white;
+		font-family: monospace;
+		padding: 1em;">
+			<div>Time: <span id="time"></span></div>
+			<div>Score: <span id="score"></span></div>
+		</div>
 		<script src="js/three.js"></script>
 		<script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/loaders/GLTFLoader.js"></script>
 		<script src="js/script.js">
 			     
 		</script>
+		</div>
 	</body>
 </html>
